@@ -164,7 +164,3 @@ def init() -> None:
 
 def _on_walk_error(name: str) -> None:
     raise ImportError("Failed to import {}".format(name))
-
-
-def _walk_normal() -> Iterator[ExtensionInfo]:
-    """Walk extensions when not using PyInstaller."""
