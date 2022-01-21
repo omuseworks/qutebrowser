@@ -338,7 +338,7 @@ def check_yaml_c_exts():
     Not available yet with a nightly Python, see:
     https://github.com/yaml/pyyaml/issues/416
     """
-    if testutils.ON_CI and sys.version_info[:2] != (3, 10):
+    if testutils.ON_CI and sys.version_info[:2] != (3, 11):
         from yaml import CLoader
 
 
