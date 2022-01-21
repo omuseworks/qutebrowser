@@ -43,7 +43,9 @@ except ImportError:
     colorama = None
 
 if TYPE_CHECKING:
-    # pylint: disable=unused-import
+    # Only used in type annotation strings, whether pylint thinks it's unused
+    # depends on Python version...
+    # pylint: disable=unused-import,useless-suppression
     from qutebrowser.config import config as configmodule
     from typing import TextIO
 
