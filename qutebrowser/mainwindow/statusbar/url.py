@@ -21,8 +21,7 @@
 
 import enum
 
-from PyQt5.QtCore import (pyqtSlot, pyqtProperty,  # type: ignore[attr-defined]
-                          QUrl)
+from PyQt5.QtCore import pyqtSlot, pyqtProperty, QUrl
 
 from qutebrowser.mainwindow.statusbar import textbase
 from qutebrowser.config import stylesheet

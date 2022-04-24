@@ -156,7 +156,7 @@ def _assert_plain_key(key: Qt.Key) -> None:
 def _assert_plain_modifier(key: _ModifierType) -> None:
     """Make sure this is a modifier without a key mixed in."""
     mask = Qt.KeyboardModifierMask
-    assert not key & ~mask, hex(key)  # type: ignore[operator]
+    assert not key & ~mask, hex(key)
 
 
 def _is_printable(key: Qt.Key) -> bool:
@@ -255,8 +255,8 @@ def _modifiers_to_string(modifiers: _ModifierType) -> str:
     """
     _assert_plain_modifier(modifiers)
     altgr = Qt.GroupSwitchModifier
-    if modifiers & altgr:  # type: ignore[operator]
-        modifiers &= ~altgr  # type: ignore[operator, assignment]
+    if modifiers & altgr:
+        modifiers &= ~altgr
         result = 'AltGr+'
     else:
         result = ''
@@ -416,7 +416,7 @@ class KeyInfo:
             return ''
 
         text = QKeySequence(self.key).toString()
-        if not self.modifiers & Qt.ShiftModifier:  # type: ignore[operator]
+        if not self.modifiers & Qt.ShiftModifier:
             text = text.lower()
         return text
 
@@ -473,7 +473,7 @@ class KeySequence:
         """Iterate over KeyInfo objects."""
         for key_and_modifiers in self._iter_keys():
             key = Qt.Key(int(key_and_modifiers) & ~Qt.KeyboardModifierMask)
-            modifiers = Qt.KeyboardModifiers(  # type: ignore[call-overload]
+            modifiers = Qt.KeyboardModifiers(
                 int(key_and_modifiers) & Qt.KeyboardModifierMask)
             yield KeyInfo(key=key, modifiers=modifiers)
 

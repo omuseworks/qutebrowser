@@ -23,6 +23,7 @@ import functools
 from typing import Optional, FrozenSet
 
 from PyQt5.QtCore import pyqtSlot, QObject
+from PyQt5.QtWidgets import QWidget
 
 from qutebrowser.config import config
 from qutebrowser.misc import debugcachestats
@@ -71,7 +72,7 @@ class _StyleSheetObserver(QObject):
                   None.
     """
 
-    def __init__(self, obj: QObject,
+    def __init__(self, obj: QWidget,
                  stylesheet: Optional[str], update: bool) -> None:
         super().__init__()
         self._obj = obj

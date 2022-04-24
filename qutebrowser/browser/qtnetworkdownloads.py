@@ -24,7 +24,7 @@ import os.path
 import shutil
 import functools
 import dataclasses
-from typing import Dict, IO, Optional
+from typing import Dict, IO, Optional, List
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QTimer, QUrl
 from PyQt5.QtWidgets import QApplication
@@ -601,6 +601,7 @@ class DownloadManager(downloads.AbstractDownloadManager):
         """
         assert nam.adopted_downloads == 0
         for download in self.downloads:
+            assert isinstance(download, DownloadItem)
             if download._uses_nam(nam):  # pylint: disable=protected-access
                 nam.adopt_download(download)
         return nam.adopted_downloads

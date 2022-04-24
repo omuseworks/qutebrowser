@@ -299,7 +299,7 @@ class CompletionItemDelegate(QStyledItemDelegate):
         size = self._style.sizeFromContents(QStyle.CT_ItemViewItem, self._opt,
                                             docsize, self._opt.widget)
         qtutils.ensure_valid(size)
-        return size + QSize(10, 3)  # type: ignore[operator]
+        return size + QSize(10, 3)
 
     def paint(self, painter, option, index):
         """Override the QStyledItemDelegate paint function.
