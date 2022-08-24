@@ -219,8 +219,8 @@ class PACResolver:
         else:
             string_flags = QUrl.UrlFormattingOption.RemoveUserInfo  # type: ignore[assignment]
             if query.url().scheme() == 'https':
-                string_flags |= QUrl.UrlFormattingOption.RemovePath  # type: ignore[assignment]
-                string_flags |= QUrl.UrlFormattingOption.RemoveQuery  # type: ignore[assignment]
+                string_flags |= QUrl.UrlFormattingOption.RemovePath
+                string_flags |= QUrl.UrlFormattingOption.RemoveQuery
 
         result = self._resolver.call([query.url().toString(string_flags),
                                       query.peerHostName()])

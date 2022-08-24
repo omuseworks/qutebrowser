@@ -40,13 +40,14 @@ from qutebrowser.qt.core import (qVersion, QEventLoop, QDataStream, QByteArray,
                           QIODevice, QFileDevice, QSaveFile, QT_VERSION_STR,
                           PYQT_VERSION_STR, QObject, QUrl, QLibraryInfo)
 from qutebrowser.qt.gui import QColor
+from qutebrowser.qt import machinery
 try:
     from qutebrowser.qt.webkit import qWebKitVersion
 except ImportError:  # pragma: no cover
     qWebKitVersion = None  # type: ignore[assignment]  # noqa: N816
 if TYPE_CHECKING:
     from qutebrowser.qt.webkit import QWebHistory
-    from qutebrowser.qt.webenginewidgets import QWebEngineHistory
+    from qutebrowser.qt.webenginecore import QWebEngineHistory
 
 from qutebrowser.misc import objects
 from qutebrowser.utils import usertypes, utils
@@ -186,13 +187,21 @@ def check_qdatastream(stream: QDataStream) -> None:
         raise OSError(status_to_str[stream.status()])
 
 
-_QtSerializableType = Union[
-    QObject,
-    QByteArray,
-    QUrl,
-    'QWebEngineHistory',
-    'QWebHistory'
-]
+if machinery.IS_QT5:
+    _QtSerializableType = Union[
+        QObject,
+        QByteArray,
+        QUrl,
+        'QWebEngineHistory',
+        'QWebHistory'
+    ]
+else:
+    _QtSerializableType = Union[
+        QObject,
+        QByteArray,
+        QUrl,
+        'QWebEngineHistory',
+    ]
 
 
 def serialize(obj: _QtSerializableType) -> QByteArray:
@@ -581,7 +590,7 @@ class LibraryPath(enum.Enum):
 
 def library_path(which: LibraryPath) -> pathlib.Path:
     """Wrapper around QLibraryInfo.path / .location."""
-    if hasattr(QLibraryInfo, "path"):
+    if machinery.IS_QT6:
         # Qt 6
         val = getattr(QLibraryInfo.LibraryPath, which.value)
         ret = QLibraryInfo.path(val)

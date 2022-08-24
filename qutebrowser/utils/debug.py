@@ -33,7 +33,7 @@ from qutebrowser.qt.core import Qt, QEvent, QMetaMethod, QObject, pyqtBoundSigna
 
 from qutebrowser.utils import log, utils, qtutils, objreg
 from qutebrowser.misc import objects
-from qutebrowser.qt import sip
+from qutebrowser.qt import sip, machinery
 
 
 def log_events(klass: Type[QObject]) -> Type[QObject]:
@@ -99,7 +99,10 @@ def log_signals(obj: QObject) -> QObject:
     return obj
 
 
-_EnumValueType = Union[sip.simplewrapper, int]
+if machinery.IS_QT5:
+    _EnumValueType = Union[sip.simplewrapper, int]
+else:
+    _EnumValueType = Union[sip.wrapper ,int]
 
 
 def _qenum_key_python(
@@ -109,8 +112,10 @@ def _qenum_key_python(
     """New-style PyQt6: Try getting value from Python enum."""
     if isinstance(value, enum.Enum) and value.name:
         return value.name
+    assert isinstance(value, int)
 
     # We got an int with klass passed: Try asking Python enum for member
+    assert klass
     if issubclass(klass, enum.Enum):
         try:
             name = klass(value).name
@@ -131,7 +136,7 @@ def _qenum_key_qt(
     # However, not every Qt enum value has a staticMetaObject
     try:
         meta_obj = base.staticMetaObject  # type: ignore[union-attr]
-        idx = meta_obj.indexOfEnumerator(klass.__name__)
+        idx = meta_obj.indexOfEnumerator(klass.__name__)  # type: ignore[union-attr]
         meta_enum = meta_obj.enumerator(idx)
         key = meta_enum.valueToKey(int(value))  # type: ignore[arg-type]
         if key is not None:
@@ -140,6 +145,7 @@ def _qenum_key_qt(
         pass
 
     # PyQt5: Try finding value match in class
+    assert klass
     for name, obj in vars(base).items():
         if isinstance(obj, klass) and obj == value:
             return name
@@ -222,7 +228,7 @@ def qflags_key(base: Type[_EnumValueType],
     for bit in bits:
         # We have to re-convert to an enum type here or we'll sometimes get an
         # empty string back.
-        enum_value = klass(bit)  # type: ignore[call-arg]
+        enum_value = klass(bit)
         names.append(qenum_key(base, enum_value, klass))
     return '|'.join(names)
 

@@ -37,10 +37,11 @@ from typing import Iterator, List, Mapping, Optional, Union, overload
 
 from qutebrowser.qt.core import Qt, QEvent
 from qutebrowser.qt.gui import QKeySequence, QKeyEvent
-try:
-    from qutebrowser.qt.core import QKeyCombination
-except ImportError:
+from qutebrowser.qt import machinery
+if machinery.IS_QT5:
     QKeyCombination = None  # Qt 6 only
+else:
+    from qutebrowser.qt.core import QKeyCombination
 
 from qutebrowser.utils import utils, qtutils, debug
 
@@ -69,7 +70,7 @@ try:
 except ValueError:
     # WORKAROUND for
     # https://www.riverbankcomputing.com/pipermail/pyqt/2022-April/044607.html
-    _NIL_KEY = 0
+    _NIL_KEY = 0  # type: ignore[assignment]
 
 _ModifierType = Qt.KeyboardModifier
 
@@ -541,6 +542,7 @@ class KeySequence:
 
     def __iter__(self) -> Iterator[KeyInfo]:
         """Iterate over KeyInfo objects."""
+        combination: QKeySequence
         for combination in itertools.chain.from_iterable(self._sequences):
             yield KeyInfo.from_qt(combination)
 
@@ -712,7 +714,7 @@ class KeySequence:
             mappings: Mapping['KeySequence', 'KeySequence']
     ) -> 'KeySequence':
         """Get a new KeySequence with the given mappings applied."""
-        infos = []
+        infos: List[KeyInfo] = []
         for info in self:
             key_seq = KeySequence(info)
             if key_seq in mappings:

@@ -138,16 +138,16 @@ class VersionNumber:
         return self._ver != other._ver
 
     def __ge__(self, other: 'VersionNumber') -> bool:
-        return self._ver >= other._ver  # type: ignore[operator]
+        return self._ver >= other._ver
 
     def __gt__(self, other: 'VersionNumber') -> bool:
-        return self._ver > other._ver  # type: ignore[operator]
+        return self._ver > other._ver
 
     def __le__(self, other: 'VersionNumber') -> bool:
-        return self._ver <= other._ver  # type: ignore[operator]
+        return self._ver <= other._ver
 
     def __lt__(self, other: 'VersionNumber') -> bool:
-        return self._ver < other._ver  # type: ignore[operator]
+        return self._ver < other._ver
 
 
 class Unreachable(Exception):
