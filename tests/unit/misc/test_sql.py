@@ -24,8 +24,8 @@ import pytest
 import hypothesis
 from hypothesis import strategies
 
-from qutebrowser.misc import sql
-from qutebrowser.qt import sql as qtsql
+from qutebrowser.misc import sql as qutesql
+from qutebrowser.qt import sql
 
 
 pytestmark = pytest.mark.usefixtures('data_tmpdir')
@@ -38,7 +38,7 @@ class TestUserVersion:
         (0x7FFF_FFFF, 0x7FFF, 0xFFFF),
     ])
     def test_from_int(self, val, major, minor):
-        version = sql.UserVersion.from_int(val)
+        version = qutesql.UserVersion.from_int(val)
         assert version.major == major
         assert version.minor == minor
 
@@ -47,13 +47,13 @@ class TestUserVersion:
         (0x7FFF, 0xFFFF, 0x7FFF_FFFF),
     ])
     def test_to_int(self, major, minor, val):
-        version = sql.UserVersion(major, minor)
+        version = qutesql.UserVersion(major, minor)
         assert version.to_int() == val
 
     @pytest.mark.parametrize('val', [0x8000_0000, -1])
     def test_from_int_invalid(self, val):
         with pytest.raises(AssertionError):
-            sql.UserVersion.from_int(val)
+            qutesql.UserVersion.from_int(val)
 
     @pytest.mark.parametrize('major, minor', [
         (-1, 0),
@@ -62,13 +62,13 @@ class TestUserVersion:
         (0x8000, 0),
     ])
     def test_to_int_invalid(self, major, minor):
-        version = sql.UserVersion(major, minor)
+        version = qutesql.UserVersion(major, minor)
         with pytest.raises(AssertionError):
             version.to_int()
 
     @hypothesis.given(val=strategies.integers(min_value=0, max_value=0x7FFF_FFFF))
     def test_from_int_hypothesis(self, val):
-        version = sql.UserVersion.from_int(val)
+        version = qutesql.UserVersion.from_int(val)
         assert version.to_int() == val
 
     @hypothesis.given(
@@ -76,11 +76,11 @@ class TestUserVersion:
         minor=strategies.integers(min_value=0, max_value=0xFFFF)
     )
     def test_to_int_hypothesis(self, major, minor):
-        version = sql.UserVersion(major, minor)
+        version = qutesql.UserVersion(major, minor)
         assert version.from_int(version.to_int()) == version
 
 
-@pytest.mark.parametrize('klass', [sql.KnownError, sql.BugError])
+@pytest.mark.parametrize('klass', [qutesql.KnownError, qutesql.BugError])
 def test_sqlerror(klass):
     text = "Hello World"
     err = klass(text)
@@ -91,19 +91,19 @@ def test_sqlerror(klass):
 class TestSqlError:
 
     @pytest.mark.parametrize('error_code, exception', [
-        (sql.SqliteErrorCode.BUSY, sql.KnownError),
-        (sql.SqliteErrorCode.CONSTRAINT, sql.BugError),
+        (qutesql.SqliteErrorCode.BUSY, qutesql.KnownError),
+        (qutesql.SqliteErrorCode.CONSTRAINT, qutesql.BugError),
     ])
     def test_known(self, error_code, exception):
-        sql_err = qtsql.QSqlError("driver text", "db text", qtsql.QSqlError.ErrorType.UnknownError,
+        sql_err = sql.QSqlError("driver text", "db text", sql.QSqlError.ErrorType.UnknownError,
                             error_code)
         with pytest.raises(exception):
-            sql.raise_sqlite_error("Message", sql_err)
+            qutesql.raise_sqlite_error("Message", sql_err)
 
     def test_logging(self, caplog):
-        sql_err = qtsql.QSqlError("driver text", "db text", qtsql.QSqlError.ErrorType.UnknownError, '23')
-        with pytest.raises(sql.BugError):
-            sql.raise_sqlite_error("Message", sql_err)
+        sql_err = sql.QSqlError("driver text", "db text", sql.QSqlError.ErrorType.UnknownError, '23')
+        with pytest.raises(qutesql.BugError):
+            qutesql.raise_sqlite_error("Message", sql_err)
 
         expected = ['SQL error:',
                     'type: UnknownError',
@@ -113,9 +113,9 @@ class TestSqlError:
 
         assert caplog.messages == expected
 
-    @pytest.mark.parametrize('klass', [sql.KnownError, sql.BugError])
+    @pytest.mark.parametrize('klass', [qutesql.KnownError, qutesql.BugError])
     def test_text(self, klass):
-        sql_err = qtsql.QSqlError("driver text", "db text")
+        sql_err = sql.QSqlError("driver text", "db text")
         err = klass("Message", sql_err)
         assert err.text() == "db text"
 
@@ -143,7 +143,7 @@ def test_insert_replace(qtbot, database):
         table.insert({'name': 'one', 'val': 11, 'lucky': True}, replace=True)
     assert list(table) == [('one', 11, True)]
 
-    with pytest.raises(sql.BugError):
+    with pytest.raises(qutesql.BugError):
         table.insert({'name': 'one', 'val': 11, 'lucky': True}, replace=False)
 
 
@@ -179,7 +179,7 @@ def test_insert_batch_replace(qtbot, database):
                            ('one', 11, True),
                            ('nine', 19, True)]
 
-    with pytest.raises(sql.BugError):
+    with pytest.raises(qutesql.BugError):
         table.insert_batch({'name': ['one', 'nine'],
                             'val': [11, 19],
                             'lucky': [True, True]})
@@ -290,13 +290,13 @@ def test_delete_all(qtbot, database):
 
 
 def test_version():
-    assert isinstance(sql.version(), str)
+    assert isinstance(qutesql.version(), str)
 
 
 class TestSqlQuery:
 
     def test_prepare_error(self, database):
-        with pytest.raises(sql.BugError) as excinfo:
+        with pytest.raises(qutesql.BugError) as excinfo:
             database.query('invalid')
 
         expected = ('Failed to prepare query "invalid": "near "invalid": '
@@ -310,7 +310,7 @@ class TestSqlQuery:
 
     def test_iter_inactive(self, database):
         q = database.query('SELECT 0')
-        with pytest.raises(sql.BugError,
+        with pytest.raises(qutesql.BugError,
                            match='Cannot iterate inactive query'):
             next(iter(q))
 
@@ -339,7 +339,7 @@ class TestSqlQuery:
 
     def test_run_missing_binding(self, database):
         q = database.query('SELECT :answer')
-        with pytest.raises(sql.BugError, match='Missing bound values!'):
+        with pytest.raises(qutesql.BugError, match='Missing bound values!'):
             q.run()
 
     def test_run_batch(self, database):
@@ -349,13 +349,13 @@ class TestSqlQuery:
 
     def test_run_batch_missing_binding(self, database):
         q = database.query('SELECT :answer')
-        with pytest.raises(sql.BugError, match='Missing bound values!'):
+        with pytest.raises(qutesql.BugError, match='Missing bound values!'):
             q.run_batch(values={})
 
     def test_value_missing(self, database):
         q = database.query('SELECT 0 WHERE 0')
         q.run()
-        with pytest.raises(sql.BugError, match='No result for single-result query'):
+        with pytest.raises(qutesql.BugError, match='No result for single-result query'):
             q.value()
 
     def test_num_rows_affected_not_active(self, database):
@@ -391,10 +391,10 @@ class TestTransaction:
             my_table.insert({'column': 1})
             my_table.insert({'column': 2})
 
-            db2 = qtsql.QSqlDatabase.addDatabase('QSQLITE', 'db2')
+            db2 = sql.QSqlDatabase.addDatabase('QSQLITE', 'db2')
             db2.setDatabaseName(database.qt_database().databaseName())
             db2.open()
-            query = qtsql.QSqlQuery(db2)
+            query = sql.QSqlQuery(db2)
             query.exec('select count(*) from my_table')
             query.next()
             assert query.record().value(0) == 0

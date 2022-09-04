@@ -21,26 +21,26 @@
 
 from typing import Optional
 
-from qutebrowser.qt import widgets, sql as qtsql
+from qutebrowser.qt import sql, widgets
 
-from qutebrowser.misc import sql
+from qutebrowser.misc import sql as qutesql
 from qutebrowser.utils import debug, message, log
 from qutebrowser.config import config
 from qutebrowser.completion.models import util
 
 
-class HistoryCategory(qtsql.QSqlQueryModel):
+class HistoryCategory(sql.QSqlQueryModel):
 
     """A completion category that queries the SQL history store."""
 
-    def __init__(self, *, database: sql.Database,
+    def __init__(self, *, database: qutesql.Database,
                  delete_func: util.DeleteFuncType = None,
                  parent: widgets.QWidget = None) -> None:
         """Create a new History completion category."""
         super().__init__(parent=parent)
         self._database = database
         self.name = "History"
-        self._query: Optional[sql.Query] = None
+        self._query: Optional[qutesql.Query] = None
 
         # advertise that this model filters by URL and title
         self.columns_to_filter = [0, 1]
@@ -120,7 +120,7 @@ class HistoryCategory(qtsql.QSqlQueryModel):
             with debug.log_time('sql', 'Running completion query'):
                 self._query.run(**{
                     str(i): w for i, w in enumerate(words)})
-        except sql.KnownError as e:
+        except qutesql.KnownError as e:
             # Sometimes, the query we built up was invalid, for example,
             # due to a large amount of words.
             # Also catches failures in the DB we can't solve.
